@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Bus Finder</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="p-4">
+<div class="container">
+  <h2>Bus Finder</h2>
+  <div class="row g-2 align-items-end">
+    <div class="col-md-4">
+      <label>Source</label>
+      <input type="text" id="source" class="form-control" placeholder="Enter Source">
+    </div>
+    <div class="col-md-4">
+      <label>Destination</label>
+      <input type="text" id="destination" class="form-control" placeholder="Enter Destination">
+    </div>
+    <div class="col-md-2">
+      <button id="searchBtn" class="btn btn-primary">Search</button>
+    </div>
+  </div>
+
+  <hr/>
+
+  <table class="table table-bordered mt-3" id="resultsTable" style="display:none;">
+    <thead>
+      <tr><th>Bus Number</th><th>Route</th><th>Departure Time</th></tr>
+    </thead>
+    <tbody id="resultsBody"></tbody>
+  </table>
+  <div id="noResults" class="alert alert-warning mt-3" style="display:none;">No buses found.</div>
+</div>
+
+<script>
+document.getElementById('searchBtn').addEventListener('click', async () => {
+  const source = document.getElementById('source').value;
+  const destination = document.getElementById('destination').value;
+  if(!source || !destination){ alert('Enter both'); return; }
+
+  const res = await fetch(`/search?source=${encodeURIComponent(source)}&destination=${encodeURIComponent(destination)}`);
+  if(!res.ok){ alert('Error contacting server'); return; }
+  const data = await res.json();
+
+  const tbody = document.getElementById('resultsBody');
+  tbody.innerHTML = '';
+
+  if(data.length === 0){
+    document.getElementById('resultsTable').style.display='none';
+    document.getElementById('noResults').style.display='block';
+    return;
+  }
+
+  document.getElementById('noResults').style.display='none';
+  document.getElementById('resultsTable').style.display='table';
+
+  data.forEach(bus => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${bus.bus_number}</td><td>${bus.route_name}</td><td>${bus.departure_time_at_source}</td>`;
+    tbody.appendChild(tr);
+  });
+});
+</script>
+</body>
+</html>
